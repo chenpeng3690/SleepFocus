@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">强制专注</string>
+
+    <!-- 底部导航 -->
+    <string name="nav_home">主页</string>
+    <string name="nav_stats">统计</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- 主页 -->
+    <string name="home_title">专注</string>
+    <string name="home_countdown_idle">未开始</string>
+    <string name="home_today_card_title">今日专注</string>
+    <string name="home_today_minutes">今日累计</string>
+    <string name="home_today_finished">完成次数</string>
+    <string name="home_preset_title">选择时长</string>
+    <string name="home_minutes_chip">%1$d 分钟</string>
+    <string name="home_duration_hint">长按自定义时长可删除</string>
+    <string name="home_duration_full">已保留 %1$d 个自定义时长，长按可删除</string>
+    <string name="home_custom_minutes">自定义分钟</string>
+    <string name="home_custom_hint">输入分钟数</string>
+    <string name="home_custom_chip">自定义</string>
+    <string name="home_custom_dialog_title">自定义时长</string>
+    <string name="home_start_with_minutes">开始专注(%1$d分钟)</string>
+    <string name="home_selected_apps">已选应用</string>
+    <string name="home_selected_apps_count">已选 %1$d 个应用</string>
+    <string name="home_selected_apps_empty">尚未选择应用</string>
+    <string name="home_manage_apps">管理应用</string>
+    <string name="home_start">开始专注</string>
+    <string name="home_stop">停止并解冻</string>
+    <string name="home_stop_disallowed">无法中断</string>
+    <string name="home_frozen_count">正在冻结 %1$d 个应用</string>
+
+    <!-- 停止确认 -->
+    <string name="stop_dialog_title">确定要提前停止吗？</string>
+    <string name="stop_dialog_message">将立即解冻所有被冻结的应用，本次记录为「已中断」。此操作不可撤销。</string>
+    <string name="stop_dialog_confirm">停止并解冻</string>
+    <string name="stop_dialog_cancel">继续专注</string>
+    <string name="stop_dialog_confirm_counting">确认(%1$d秒)</string>
+    <string name="stop_dialog_confirm_ready">确认</string>
+
+    <!-- 应用选择页 -->
+    <string name="apps_title">选择应用</string>
+    <string name="apps_search_hint">搜索应用名或包名</string>
+    <string name="apps_show_system">显示系统应用</string>
+    <string name="apps_save">保存</string>
+    <string name="apps_saved">已保存 %1$d 个应用</string>
+    <string name="apps_loading">正在加载应用列表…</string>
+    <string name="apps_empty">没有找到匹配的应用</string>
+    <string name="apps_select_all">全选</string>
+    <string name="apps_clear_all">清空</string>
+    <string name="apps_selected_count">已选 %1$d 个</string>
+    <string name="apps_selected_dialog_title">已选应用（%1$d）</string>
+    <string name="apps_selected_empty">还没有选择应用</string>
+    <string name="apps_self_tip">SleepFocus 自身不会被冻结</string>
+
+    <!-- 统计页 -->
+    <string name="stats_title">专注统计</string>
+    <string name="stats_today">今日</string>
+    <string name="stats_week">本周</string>
+    <string name="stats_total">总累计</string>
+    <string name="stats_finished_count">完成次数</string>
+    <string name="stats_stopped_count">中断次数</string>
+    <string name="stats_range_7days">近 7 天</string>
+    <string name="stats_range_30days">近 30 天</string>
+    <string name="stats_history">历史专注</string>
+    <string name="stats_history_empty">还没有专注记录</string>
+    <string name="stats_history_more">查看更多</string>
+    <string name="history_month_summary">%1$s · %2$d 次</string>
+    <string name="history_total_duration">总专注时间</string>
+    <string name="history_total_count">专注次数</string>
+    <string name="history_delete_title">删除这条专注记录？</string>
+    <string name="history_delete_message">删除后无法恢复，该记录将不再计入统计。</string>
+    <string name="stats_minutes_unit">%1$d 分钟</string>
+    <string name="stats_count_times">%1$d 次</string>
+    <string name="stats_hours_minutes">%1$d 小时 %2$d 分</string>
+    <string name="stats_status_running">进行中</string>
+    <string name="stats_status_completed">已完成</string>
+    <string name="stats_status_stopped">已中断</string>
+    <string name="stats_plan_duration">计划 %1$d 分钟</string>
+    <string name="stats_actual_duration">实际 %1$d 分钟</string>
+
+    <!-- 设置页 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_root_section">Root 权限</string>
+    <string name="settings_root_status">Root 状态</string>
+    <string name="settings_root_granted">已授权</string>
+    <string name="settings_root_denied">未授权</string>
+    <string name="settings_root_unknown">未检测</string>
+    <string name="settings_test_root">测试 Root</string>
+    <string name="settings_testing">正在测试…</string>
+    <string name="settings_permission_section">权限</string>
+    <string name="settings_notification_permission">通知权限</string>
+    <string name="settings_fgs_permission">前台服务</string>
+    <string name="settings_alarm_permission">精确闹钟</string>
+    <string name="settings_exact_alarm_granted">已授权</string>
+    <string name="settings_exact_alarm_denied">未授权（定时睡眠将降级为不精确）</string>
+    <string name="settings_focus_section">专注</string>
+    <string name="settings_default_duration">默认倒计时时长</string>
+    <string name="settings_count_stopped">提前停止计入累计专注时间</string>
+    <string name="settings_count_stopped_desc">关闭后，中断的专注记录不计入累计时长（完成次数始终只统计已完成的专注记录）</string>
+    <string name="settings_schedule_section">定时睡眠</string>
+    <string name="settings_schedule_enabled">启用定时睡眠</string>
+    <string name="settings_schedule_start">开始时间</string>
+    <string name="settings_schedule_end">解冻时间</string>
+    <string name="settings_schedule_tip">到点自动冻结已选应用，到解冻时间自动恢复</string>
+    <string name="settings_interrupt_section">中断专注</string>
+    <string name="settings_interrupt_desc">控制专注进行中能否在主页提前停止并解冻应用</string>
+    <string name="settings_interrupt_allow">允许</string>
+    <string name="settings_interrupt_delay">延迟</string>
+    <string name="settings_interrupt_disallow">不允许</string>
+    <string name="settings_theme_section">颜色切换</string>
+    <string name="settings_theme_desc">默认跟随系统深浅色，也可显式指定浅色或深色</string>
+    <string name="settings_theme_system">跟随系统</string>
+    <string name="settings_theme_dark">深色</string>
+    <string name="settings_theme_light">浅色</string>
+    <string name="settings_data_section">数据</string>
+    <string name="settings_data_backup_desc">可将全部专注记录导出为 JSON 文件备份，或从备份文件导入。导入采用合并方式，不会删除已有记录。</string>
+    <string name="settings_export_data">导出数据</string>
+    <string name="settings_import_data">导入数据</string>
+    <string name="settings_export_success">专注数据已导出</string>
+    <string name="settings_export_failed">导出失败，请重试</string>
+    <string name="settings_import_success">已导入 %1$d 条专注记录</string>
+    <string name="settings_import_empty">文件中没有可导入的专注记录</string>
+    <string name="settings_import_failed">导入失败，请确认文件是有效的备份</string>
+    <string name="settings_clear_stats">清空统计数据</string>
+    <string name="settings_clear_stats_confirm">将删除全部已完成与已中断的专注记录，正在进行的专注会保留。日志不受影响。确定继续吗？</string>
+    <string name="settings_cleared">统计数据已清空</string>
+    <string name="settings_grant">去授权</string>
+    <string name="schedule_fail_title">定时睡眠启动失败</string>
+    <string name="schedule_fail_text">无法启动前台服务，请检查通知权限与「精确闹钟」权限后重试。</string>
+
+    <!-- 日志 -->
+    <string name="logs_title">执行日志</string>
+    <string name="settings_log_enabled">启用日志</string>
+    <string name="logs_path_desc">日志以文本文件形式保存在应用私有目录，可用 root 文件管理器查看。超过 512KB 时会自动保留最近 1000 行。</string>
+
+    <!-- 通知 -->
+    <string name="channel_ongoing_name">专注进行中</string>
+    <string name="channel_ongoing_desc">显示倒计时剩余时间</string>
+    <string name="channel_result_name">专注结果</string>
+    <string name="channel_result_desc">专注完成或中断提醒</string>
+    <string name="channel_alert_name">异常提醒</string>
+    <string name="channel_alert_desc">Root 失败或恢复异常</string>
+    <string name="notify_ongoing_title">专注中</string>
+    <string name="notify_preparing_title">正在准备冻结…</string>
+    <string name="notify_preparing_text">正在检查 Root 权限并冻结已选应用</string>
+    <string name="notify_partial_fail_title">部分应用冻结失败</string>
+    <string name="notify_partial_fail_text">以下应用未能冻结，仍可使用：%1$s</string>
+    <string name="notify_freeze_all_fail_title">冻结失败</string>
+    <string name="notify_freeze_all_fail_text">所有已选应用都未能冻结，请检查 Root 权限与日志。</string>
+    <string name="notify_recovered_title">已恢复专注</string>
+    <string name="notify_recovered_text">检测到未完成的专注，已重新冻结应用，剩余 %1$s。</string>
+    <string name="notify_ongoing_text">剩余 %1$s · 已冻结 %2$d 个应用</string>
+    <string name="notify_completed_title">专注完成</string>
+    <string name="notify_completed_text">本次专注 %1$d 分钟，应用已全部解冻</string>
+    <string name="notify_stopped_title">已提前停止</string>
+    <string name="notify_stopped_text">本次专注 %1$d 分钟，应用已全部解冻</string>
+    <string name="notify_root_error_title">Root 不可用</string>
+    <string name="notify_root_error_text">%1$s</string>
+
+    <!-- 通用 -->
+    <string name="common_confirm">确定</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_ok">好</string>
+    <string name="common_unknown">未知</string>
+
+    <!-- 提示文案 -->
+    <string name="msg_root_required">未获取 Root 权限，无法冻结应用。请先授予 Root 后重试。</string>
+    <string name="msg_no_app_selected">请先选择至少一个要冻结的应用。</string>
+    <string name="msg_already_running">已有专注正在进行中，请先停止当前专注。</string>
+    <string name="msg_invalid_minutes">请输入 1 - 720 之间的分钟数。</string>
+    <string name="msg_root_test_success">Root 可用：%1$s</string>
+    <string name="msg_root_test_failed">Root 不可用：%1$s</string>
+    <string name="msg_service_start_failed">无法启动前台服务，请检查通知权限与电池优化设置。</string>
+</resources>

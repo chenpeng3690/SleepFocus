@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 及以下的备份规则。
+
+  数据库与专注偏好不参与备份：
+  换设备后恢复出「未完成专注 / 已冻结包列表」不但没有意义，
+  还可能在新设备上被 BootReceiver 当成待恢复专注去执行冻结。
+-->
+<full-backup-content>
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="file" path="datastore" />
+</full-backup-content>

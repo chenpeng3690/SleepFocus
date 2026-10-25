@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1254"
+    android:viewportHeight="1254">
+    <!--
+      图标：四角取景框 + 断环球形扫描圈 + 中间的挂锁，右上角一段薄荷绿弧。
+      坐标沿用源图 1254×1254 坐标系，整体缩放到自适应图标安全区（中心 627,620，缩放 0.64）。
+    -->
+    <group
+        android:pivotX="627"
+        android:pivotY="620"
+        android:scaleX="0.64"
+        android:scaleY="0.64">
+
+        <!-- 扫描环：椭圆 rx=354 ry=366，圆心 (627,614)，笔宽 40 -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M418.9,317.9 A354,366 0 0,1 787.7,287.9"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="40"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M957.5,482.8 A354,366 0 0,1 923.9,813.3"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="40"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M835.1,910.1 A354,366 0 0,1 390.1,886.0"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="40"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M320.4,797.0 A354,366 0 0,1 340.6,398.9"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="40"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M835.1,317.9 A354,366 0 0,1 933.6,431.0"
+            android:strokeColor="#6CCFB1"
+            android:strokeWidth="40"
+            android:strokeLineCap="round" />
+
+        <!-- 四角取景框，笔宽 46 -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M207,380 L207,213.5 L346.5,213.5"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="46"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M1047,380 L1047,213.5 L907.5,213.5"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="46"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M207,860 L207,1026.5 L346.5,1026.5"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="46"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M1047,860 L1047,1026.5 L907.5,1026.5"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="46"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <!-- 锁梁：半径 105.5 的半圆，笔宽 66 -->
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M521.5,549 L521.5,496 A105.5,105.5 0 0,1 732.5,496 L732.5,549"
+            android:strokeColor="#404ACB"
+            android:strokeWidth="66"
+            android:strokeLineCap="round" />
+
+        <!-- 锁体：x 434..820，y 549..858，圆角 46 -->
+        <path
+            android:fillColor="#404ACB"
+            android:pathData="M480,549 H774 A46,46 0 0,1 820,595 V812 A46,46 0 0,1 774,858 H480 A46,46 0 0,1 434,812 V595 A46,46 0 0,1 480,549 Z" />
+
+        <!-- 钥匙孔：锁孔圆 + 下方梯形 -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M584,677 A43,43 0 1,0 670,677 A43,43 0 1,0 584,677 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M609,712 L645,712 L666,778 L588,778 Z" />
+    </group>
+</vector>
