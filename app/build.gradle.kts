@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "2.3.1"
+        versionName = "2.4.0"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -56,6 +56,15 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        jniLibs {
+            // 这两份是未带可剥离调试符号的预编译库，声明保留以避免 stripReleaseDebugSymbols 告警
+            keepDebugSymbols.addAll(
+                listOf(
+                    "**/libandroidx.graphics.path.so",
+                    "**/libdatastore_shared_counter.so"
+                )
+            )
         }
     }
 }

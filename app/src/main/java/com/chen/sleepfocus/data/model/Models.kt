@@ -95,14 +95,20 @@ data class MonthFocus(
 )
 
 /**
- * 定时睡眠配置。[startMinuteOfDay] / [endMinuteOfDay] 为当天 0 点起的分钟数。
- * 当 end <= start 时视为跨天（例如 23:00 -> 07:00）。
+ * 一条睡眠计划：每天 [startMinuteOfDay] 冻结 [packages]，到 [endMinuteOfDay] 自动解冻。
+ * 两个字段都是当天 0 点起的分钟数；当 end <= start 时视为跨天（例如 23:00 -> 07:00）。
  */
-data class ScheduleConfig(
-    val enabled: Boolean = false,
+data class SleepPlan(
+    val id: Long = 0L,
+    val enabled: Boolean = true,
     val startMinuteOfDay: Int = 23 * 60,
-    val endMinuteOfDay: Int = 7 * 60
+    val endMinuteOfDay: Int = 7 * 60,
+    val packages: Set<String> = emptySet()
 ) {
+    /** 是否跨天（结束时间不晚于开始时间） */
+    val isCrossDay: Boolean
+        get() = endMinuteOfDay <= startMinuteOfDay
+
     /** 冻结时长（分钟），跨天时自动 +24h */
     val durationMinutes: Int
         get() {
@@ -111,7 +117,7 @@ data class ScheduleConfig(
         }
 
     /**
-     * 若 [timeMillis] 落在本配置的睡眠时间段内（每日重复、可跨天），
+     * 若 [timeMillis] 落在本计划的时间段内（每日重复、可跨天），
      * 返回该时间段对应的结束时刻；不在时间段内则返回 null。
      * 手动专注的计划结束时刻落在时间段内时，据此顺延到结束时刻解冻。
      */

@@ -26,6 +26,12 @@ object Constants {
     const val EXTRA_MINUTES = "extra_minutes"
     const val EXTRA_PACKAGES = "extra_packages"
 
+    /** 专注由哪条计划触发（写入专注记录，供重叠计划接管判断） */
+    const val EXTRA_SOURCE_PLAN_ID = "extra_source_plan_id"
+
+    /** 启动专注时是否先结束当前正在进行的专注（计划重叠时由后触发的计划接管） */
+    const val EXTRA_REPLACE_RUNNING = "extra_replace_running"
+
     // ---------- 定时睡眠 Action ----------
     const val ACTION_SCHEDULE_START = "com.chen.sleepfocus.action.SCHEDULE_START"
     const val ACTION_SCHEDULE_STOP = "com.chen.sleepfocus.action.SCHEDULE_STOP"
@@ -33,11 +39,18 @@ object Constants {
     /** 解冻前提前唤醒：只申请 WakeLock 让 CPU 保持清醒，不涉及业务状态 */
     const val ACTION_PRE_WAKE = "com.chen.sleepfocus.action.PRE_WAKE"
 
+    /** 闹钟携带的计划 id，用于在广播里定位是哪一条睡眠计划 */
+    const val EXTRA_PLAN_ID = "extra_plan_id"
+
+    /** 旧版单条定时睡眠的 RequestCode，升级后用于清理遗留闹钟 */
     const val REQUEST_CODE_SCHEDULE_START = 2001
     const val REQUEST_CODE_SCHEDULE_STOP = 2002
-
-    /** 定时睡眠配置的提前唤醒闹钟（随 START / STOP 一起注册与取消） */
     const val REQUEST_CODE_PRE_WAKE_SCHEDULE = 2003
+
+    // ---------- 睡眠计划闹钟 RequestCode（按计划 id 区分） ----------
+    const val REQUEST_CODE_PLAN_START_BASE = 2100
+    const val REQUEST_CODE_PLAN_STOP_BASE = 2200
+    const val REQUEST_CODE_PLAN_PRE_WAKE_BASE = 2300
 
     /** 正在进行中的专注（手动或定时）按实际结束时间注册的提前唤醒闹钟 */
     const val REQUEST_CODE_PRE_WAKE_SESSION = 2004
@@ -51,6 +64,12 @@ object Constants {
 
     /** 上面这段等待的轮询间隔 */
     const val SCHEDULE_AWAIT_RUNNING_POLL_MS = 200L
+
+    /**
+     * 计划到点解冻时，判定「当前专注属于这条计划」的结束时间容差。
+     * 多条计划可能互相重叠，不能见专注就结束，否则会误伤别的计划正在跑的专注。
+     */
+    const val SCHEDULE_STOP_MATCH_TOLERANCE_MS = 5 * 60_000L
 
     // ---------- 解冻前提前唤醒 ----------
     /** 解冻前多久开始唤醒设备；深度睡眠下协程定时器会停止走动，需提前把设备唤醒 */

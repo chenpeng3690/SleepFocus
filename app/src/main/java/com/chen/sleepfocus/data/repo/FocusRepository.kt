@@ -54,21 +54,24 @@ class FocusRepository(
     override suspend fun startSession(
         plannedMinutes: Int,
         packages: List<String>,
-        now: Long
+        now: Long,
+        sourcePlanId: Long?
     ): Long {
         val session = SessionEntity(
             startTime = now,
             plannedEndTime = now + plannedMinutes * 60_000L,
             plannedMinutes = plannedMinutes,
             status = Constants.STATUS_RUNNING,
-            frozenPackages = packages
+            frozenPackages = packages,
+            sourcePlanId = sourcePlanId
         )
         val id = sessionDao.insert(session)
+        val source = sourcePlanId?.let { "计划 #$it" } ?: "手动"
         log(
             action = Constants.LOG_ACTION_SESSION,
             packageName = null,
             success = true,
-            message = "专注记录 #$id 开始，计划 $plannedMinutes 分钟，冻结 ${packages.size} 个应用"
+            message = "专注记录 #$id 开始（来源：$source），计划 $plannedMinutes 分钟，冻结 ${packages.size} 个应用"
         )
         return id
     }
@@ -177,6 +180,7 @@ class FocusRepository(
                     put("actualMinutes", session.actualMinutes)
                     put("status", session.status)
                     put("frozenPackages", JSONArray(session.frozenPackages))
+                    put("sourcePlanId", session.sourcePlanId ?: JSONObject.NULL)
                 }
             )
         }
@@ -226,7 +230,8 @@ class FocusRepository(
                 plannedMinutes = plannedMinutes,
                 actualMinutes = obj.optInt("actualMinutes", 0).coerceAtLeast(0),
                 status = status,
-                frozenPackages = packages
+                frozenPackages = packages,
+                sourcePlanId = obj.optLong("sourcePlanId", 0L).takeIf { it > 0L }
             )
         }
 

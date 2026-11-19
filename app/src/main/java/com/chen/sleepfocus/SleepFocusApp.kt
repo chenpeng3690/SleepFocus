@@ -30,6 +30,7 @@ class SleepFocusApp : Application() {
 
     val database: AppDatabase by lazy {
         Room.databaseBuilder(applicationContext, AppDatabase::class.java, Constants.DB_NAME)
+            .addMigrations(AppDatabase.MIGRATION_2_3)
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -77,6 +78,8 @@ class SleepFocusApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // 旧版的单条定时睡眠在升级后迁移为一条计划；只执行一次
+        runBlocking { settings.migrateLegacySchedule() }
         // 启动时同步读一次日志开关，保证用户已开启日志时重启后不丢早期日志
         logEnabled = runBlocking { settings.logEnabled.first() }
         appScope.launch { settings.logEnabled.collect { logEnabled = it } }

@@ -22,7 +22,12 @@ interface PackageFreezer {
  * 专注与日志持久化。由 [com.chen.sleepfocus.data.repo.FocusRepository] 实现。
  */
 interface SessionStore {
-    suspend fun startSession(plannedMinutes: Int, packages: List<String>, now: Long): Long
+    suspend fun startSession(
+        plannedMinutes: Int,
+        packages: List<String>,
+        now: Long,
+        sourcePlanId: Long?
+    ): Long
     suspend fun finishSession(id: Long, status: String, endTime: Long): SessionEntity?
     suspend fun getRunningSession(): SessionEntity?
     suspend fun getRunningSessions(): List<SessionEntity>

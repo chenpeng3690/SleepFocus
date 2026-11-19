@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 /**
  * 开机 / 应用更新后：
  * 1. 检查是否有 RUNNING 专注，有则交给 FocusService 恢复（过期则解冻并标记完成）；
- * 2. 重新注册定时睡眠闹钟（重启后系统的闹钟会被清空）。
+ * 2. 重新注册睡眠计划闹钟（重启后系统的闹钟会被清空）。
  */
 class BootReceiver : BroadcastReceiver() {
 

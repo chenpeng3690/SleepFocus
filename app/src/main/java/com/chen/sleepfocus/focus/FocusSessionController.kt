@@ -47,8 +47,10 @@ class FocusSessionController(
     /**
      * 开始一次专注，阻塞直到倒计时自然结束（或抛 CancellationException 被取消）。
      * 未真正开始时（未选应用 / Root 不可用 / 全部冻结失败）直接返回，且不产生专注记录。
+     *
+     * [sourcePlanId] 标识本次专注由哪条睡眠计划触发；手动开始为 null。
      */
-    suspend fun start(minutes: Int, packages: List<String>) {
+    suspend fun start(minutes: Int, packages: List<String>, sourcePlanId: Long? = null) {
         requestedTargets = emptyList()
         val targets = packages.distinct().filter { it.isNotBlank() }
         val plannedMinutes = minutes.coerceIn(Constants.MIN_MINUTES, Constants.MAX_MINUTES)
@@ -85,7 +87,7 @@ class FocusSessionController(
 
         frozen = result.succeeded
         plannedEndTime = startTime + plannedMinutes * 60_000L
-        sessionId = store.startSession(plannedMinutes, result.succeeded, startTime)
+        sessionId = store.startSession(plannedMinutes, result.succeeded, startTime, sourcePlanId)
         isRunning = true
 
         notifier.updateOngoing(plannedEndTime - ticker.now(), frozen.size)

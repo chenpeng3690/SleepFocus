@@ -4,53 +4,44 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.chen.sleepfocus.R
 import com.chen.sleepfocus.core.TimeUtils
 import com.chen.sleepfocus.data.model.InterruptMode
-import com.chen.sleepfocus.data.model.ScheduleConfig
 import com.chen.sleepfocus.data.model.ThemeMode
+import com.chen.sleepfocus.ui.components.ConfirmDialog
 import com.chen.sleepfocus.ui.components.MessageBanner
+import com.chen.sleepfocus.ui.components.SectionTitle
+import com.chen.sleepfocus.ui.components.SettingCard
+import com.chen.sleepfocus.ui.components.SettingRow
 
 /**
- * 设置页状态。按「定时睡眠 → 中断专注 → 颜色切换 → 日志 → 数据」五节渲染。
- * Root 状态与权限不在这里显示（Root 状态在主页的告警条上体现）。
+ * 设置页状态。按「中断专注 → 颜色切换 → 日志 → 数据」四节渲染。
+ * 睡眠计划已独立到「计划」Tab；Root 状态在主页的告警条上体现。
  */
 data class SettingsUiState(
-    val schedule: ScheduleConfig = ScheduleConfig(),
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val interruptMode: InterruptMode = InterruptMode.ALLOW,
     /** 是否有专注正在进行中；进行中时禁止修改中断专注选项 */
@@ -61,14 +52,9 @@ data class SettingsUiState(
     val message: String? = null
 )
 
-private enum class TimeField { START, END }
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
-    onScheduleEnabledChanged: (Boolean) -> Unit,
-    onScheduleTimeChanged: (startMinuteOfDay: Int, endMinuteOfDay: Int) -> Unit,
     onInterruptModeChanged: (InterruptMode) -> Unit,
     onThemeModeChanged: (ThemeMode) -> Unit,
     onLogEnabledChanged: (Boolean) -> Unit,
@@ -78,7 +64,6 @@ fun SettingsScreen(
     onMessageDismissed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var editingTime by remember { mutableStateOf<TimeField?>(null) }
     var showClearStatsDialog by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -94,54 +79,6 @@ fun SettingsScreen(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // ---------------- 定时睡眠 ----------------
-        item(key = "schedule_title") {
-            SectionTitle(stringResource(R.string.settings_schedule_section))
-        }
-        item(key = "schedule_card") {
-            SettingCard {
-                SettingRow(
-                    title = stringResource(R.string.settings_schedule_enabled),
-                    trailing = {
-                        Switch(
-                            checked = uiState.schedule.enabled,
-                            onCheckedChange = onScheduleEnabledChanged
-                        )
-                    }
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                SettingRow(
-                    title = stringResource(R.string.settings_schedule_start),
-                    trailing = {
-                        TextButton(
-                            onClick = { editingTime = TimeField.START },
-                            enabled = uiState.schedule.enabled
-                        ) {
-                            Text(formatMinuteOfDay(uiState.schedule.startMinuteOfDay))
-                        }
-                    }
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                SettingRow(
-                    title = stringResource(R.string.settings_schedule_end),
-                    trailing = {
-                        TextButton(
-                            onClick = { editingTime = TimeField.END },
-                            enabled = uiState.schedule.enabled
-                        ) {
-                            Text(formatMinuteOfDay(uiState.schedule.endMinuteOfDay))
-                        }
-                    }
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = stringResource(R.string.settings_schedule_tip),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
         // ---------------- 中断专注 ----------------
         item(key = "interrupt_title") {
             SectionTitle(stringResource(R.string.settings_interrupt_section))
@@ -293,26 +230,6 @@ fun SettingsScreen(
         item(key = "bottom_space") { Spacer(Modifier.height(8.dp)) }
     }
 
-    editingTime?.let { field ->
-        val initial = if (field == TimeField.START) {
-            uiState.schedule.startMinuteOfDay
-        } else {
-            uiState.schedule.endMinuteOfDay
-        }
-        TimePickerDialog(
-            initialMinuteOfDay = initial,
-            onDismiss = { editingTime = null },
-            onConfirm = { minuteOfDay ->
-                editingTime = null
-                if (field == TimeField.START) {
-                    onScheduleTimeChanged(minuteOfDay, uiState.schedule.endMinuteOfDay)
-                } else {
-                    onScheduleTimeChanged(uiState.schedule.startMinuteOfDay, minuteOfDay)
-                }
-            }
-        )
-    }
-
     if (showClearStatsDialog) {
         ConfirmDialog(
             title = stringResource(R.string.settings_clear_stats),
@@ -325,113 +242,6 @@ fun SettingsScreen(
         )
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimePickerDialog(
-    initialMinuteOfDay: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit
-) {
-    val state = rememberTimePickerState(
-        initialHour = initialMinuteOfDay / 60,
-        initialMinute = initialMinuteOfDay % 60,
-        is24Hour = true
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = { TimePicker(state = state) },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) {
-                Text(stringResource(R.string.common_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun ConfirmDialog(
-    title: String,
-    message: String,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { Text(message) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.common_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 4.dp, top = 10.dp)
-    )
-}
-
-@Composable
-private fun SettingCard(content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            content = content
-        )
-    }
-}
-
-@Composable
-private fun SettingRow(
-    title: String,
-    subtitle: String? = null,
-    trailing: @Composable () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyMedium)
-            subtitle?.let {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        trailing()
-    }
-}
-
-private fun formatMinuteOfDay(minuteOfDay: Int): String =
-    "%02d:%02d".format(minuteOfDay / 60, minuteOfDay % 60)
 
 /** 导出时的默认文件名，例如 sleepfocus_backup_20261011_153012.json */
 private fun defaultExportFileName(): String =

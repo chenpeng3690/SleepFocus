@@ -13,7 +13,7 @@ import com.chen.sleepfocus.data.db.SessionEntity
 import com.chen.sleepfocus.data.model.AppInfo
 import com.chen.sleepfocus.data.model.InterruptMode
 import com.chen.sleepfocus.data.model.RootStatus
-import com.chen.sleepfocus.data.model.ScheduleConfig
+import com.chen.sleepfocus.data.model.SleepPlan
 import com.chen.sleepfocus.data.model.StatsSummary
 import com.chen.sleepfocus.data.model.ThemeMode
 import com.chen.sleepfocus.data.repo.FocusRepository
@@ -63,7 +63,6 @@ private data class EnvInputs(
 )
 
 private data class SettingsConfigInputs(
-    val schedule: ScheduleConfig,
     val themeMode: ThemeMode,
     val interruptMode: InterruptMode,
     val logEnabled: Boolean
@@ -97,8 +96,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val remainingMillis = MutableStateFlow(0L)
     private val message = MutableStateFlow<String?>(null)
 
-    /** 定时睡眠配置的最新快照，供手动开始专注时判断是否需要顺延 */
-    private val scheduleConfig = MutableStateFlow(ScheduleConfig())
+    /** 全部睡眠计划的最新快照，供页面渲染、闹钟排程与手动专注顺延判断使用 */
+    private val plans = MutableStateFlow<List<SleepPlan>>(emptyList())
+
+    /** 应用选择页当前要编辑的计划 id；为空表示在给主页选择全局应用 */
+    private val planAppTargetId = MutableStateFlow<Long?>(null)
 
     private val rootStatus = MutableStateFlow(RootStatus.UNKNOWN)
     private val rootDetail = MutableStateFlow<String?>(null)
@@ -195,13 +197,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val themeMode: StateFlow<ThemeMode> = themeModeState.asStateFlow()
 
+    /** 计划 Tab 与其他页面读取的计划快照（写入时同步更新，便于导航后立即取到新计划） */
+    val plansState: StateFlow<List<SleepPlan>> = plans.asStateFlow()
+
+    /** 计划编辑页进入应用选择时的状态，选中集来自目标计划实时快照 */
+    val planAppSelectState: StateFlow<AppSelectUiState> = combine(
+        installedApps,
+        isLoadingApps,
+        plans,
+        planAppTargetId
+    ) { apps, loading, allPlans, targetId ->
+        AppSelectUiState(
+            apps = apps,
+            selected = allPlans.firstOrNull { it.id == targetId }?.packages ?: emptySet(),
+            isLoading = loading
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSelectUiState())
+
     private val settingsConfigInputs = combine(
-        settings.schedule,
         settings.themeMode,
         settings.interruptMode,
         settings.logEnabled
-    ) { schedule, theme, interrupt, log ->
-        SettingsConfigInputs(schedule, theme, interrupt, log)
+    ) { theme, interrupt, log ->
+        SettingsConfigInputs(theme, interrupt, log)
     }
 
     val settingsState: StateFlow<SettingsUiState> = combine(
@@ -210,7 +228,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         runningSession
     ) { config, msg, running ->
         SettingsUiState(
-            schedule = config.schedule,
             themeMode = config.themeMode,
             interruptMode = config.interruptMode,
             isRunning = running != null,
@@ -233,6 +250,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             plannedMinutes.value = initialMinutes
             selectedPackages.value = settings.selectedPackagesOnce()
+            plans.value = settings.plansOnce()
             pruneSelectedPackages()
             rootStatus.value = settings.rootStatusOnce()
 
@@ -252,9 +270,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             settings.themeMode.collect { themeModeState.value = it }
         }
 
-        // 定时睡眠配置快照，手动开始专注时用来判断是否顺延到睡眠结束时间
+        // 计划以 DataStore 为准，用户修改或广播侧清理卸载应用后同步到内存快照
         viewModelScope.launch {
-            settings.schedule.collect { scheduleConfig.value = it }
+            settings.plans.collect { latest ->
+                if (latest != plans.value) plans.value = latest
+            }
         }
 
         viewModelScope.launch {
@@ -350,17 +370,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 手动专注的实际时长：若计划结束时刻落在已启用的定时睡眠时间段内，
-     * 则顺延到该时间段的结束时刻解冻（仍记为同一条专注记录）。
+     * 手动专注的实际时长：若计划结束时刻落在任一已启用计划的时间段内，
+     * 则顺延到最晚的那个结束时刻解冻（仍记为同一条专注记录）。
      */
     private fun effectivePlannedMinutes(): Int {
         val requested = plannedMinutes.value
-        val config = scheduleConfig.value
-        if (!config.enabled) return requested
-
         val now = System.currentTimeMillis()
         val plannedEnd = now + requested * 60_000L
-        val windowEnd = config.windowEndContaining(plannedEnd) ?: return requested
+        val windowEnd = plans.value
+            .filter { it.enabled }
+            .mapNotNull { it.windowEndContaining(plannedEnd) }
+            .maxOrNull() ?: return requested
         if (windowEnd <= plannedEnd) return requested
 
         return ((windowEnd - now) / 60_000.0).roundToInt()
@@ -386,9 +406,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             pruneSelectedPackages()
             if (installedApps.value.isNotEmpty()) return@launch
             isLoadingApps.value = true
-            installedApps.value = appRepository.loadInstalledApps(includeSystem = true)
+            val apps = appRepository.loadInstalledApps(includeSystem = true)
+            installedApps.value = apps
             isLoadingApps.value = false
+            prunePlanPackages(apps)
         }
+    }
+
+    /** 剔除各计划里已被卸载应用的包名，避免冻结时对不存在的包执行命令 */
+    private suspend fun prunePlanPackages(loadedApps: List<AppInfo>) {
+        if (loadedApps.isEmpty()) return
+        val installed = loadedApps.map { it.packageName }.toSet()
+        val current = plans.value
+        val pruned = current.map { plan ->
+            if (plan.packages.all { it in installed }) {
+                plan
+            } else {
+                plan.copy(packages = plan.packages.intersect(installed))
+            }
+        }
+        if (pruned == current) return
+
+        plans.value = pruned
+        settings.setPlans(pruned)
     }
 
     fun toggleApp(packageName: String) {
@@ -431,22 +471,87 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         settings.setSelectedPackages(installed)
     }
 
+    // ---------------- 睡眠计划 ----------------
+
+    /** 新建一条默认计划，创建完成后回调新 id 供页面直接进入编辑 */
+    fun createPlan(onCreated: (Long) -> Unit) {
+        viewModelScope.launch {
+            val id = settings.createPlan(SleepPlan())
+            plans.value = settings.plansOnce()
+            alarmScheduler.reschedule(plans.value)
+            onCreated(id)
+        }
+    }
+
+    fun setPlanEnabled(planId: Long, enabled: Boolean) {
+        updatePlan(planId, reschedule = true) { it.copy(enabled = enabled) }
+    }
+
+    fun setPlanStart(planId: Long, minuteOfDay: Int) {
+        updatePlan(planId, reschedule = true) { it.copy(startMinuteOfDay = minuteOfDay) }
+    }
+
+    fun setPlanEnd(planId: Long, minuteOfDay: Int) {
+        updatePlan(planId, reschedule = true) { it.copy(endMinuteOfDay = minuteOfDay) }
+    }
+
+    fun deletePlan(planId: Long) {
+        val updated = plans.value.filterNot { it.id == planId }
+        plans.value = updated
+        viewModelScope.launch {
+            alarmScheduler.cancelPlan(planId)
+            settings.setPlans(updated)
+        }
+    }
+
+    /**
+     * 修改某条计划并同步落库。
+     * 只有时间 / 启停变化才需要重排闹钟（[reschedule]），换应用不影响已注册的闹钟。
+     */
+    private fun updatePlan(
+        planId: Long,
+        reschedule: Boolean = false,
+        transform: (SleepPlan) -> SleepPlan
+    ) {
+        val before = plans.value
+        val updated = before.map { plan -> if (plan.id == planId) transform(plan) else plan }
+        if (updated == before) return
+
+        plans.value = updated
+        viewModelScope.launch {
+            settings.setPlans(updated)
+            if (reschedule) alarmScheduler.reschedule(updated)
+        }
+    }
+
+    /** 进入某条计划的应用选择页 */
+    fun setPlanAppTarget(planId: Long) {
+        planAppTargetId.value = planId
+    }
+
+    fun togglePlanApp(packageName: String) {
+        val planId = planAppTargetId.value ?: return
+        updatePlan(planId) { plan ->
+            plan.copy(
+                packages = if (packageName in plan.packages) {
+                    plan.packages - packageName
+                } else {
+                    plan.packages + packageName
+                }
+            )
+        }
+    }
+
+    fun changePlanVisibleSelection(packages: Set<String>, select: Boolean) {
+        val planId = planAppTargetId.value ?: return
+        updatePlan(planId) { plan ->
+            plan.copy(
+                packages = if (select) plan.packages + packages else plan.packages - packages
+            )
+        }
+    }
+
     // ---------------- 设置 ----------------
-
-    fun setScheduleEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            settings.setScheduleEnabled(enabled)
-            alarmScheduler.reschedule()
-        }
-    }
-
-    fun setScheduleTime(startMinuteOfDay: Int, endMinuteOfDay: Int) {
-        viewModelScope.launch {
-            settings.setScheduleStartMinute(startMinuteOfDay)
-            settings.setScheduleEndMinute(endMinuteOfDay)
-            alarmScheduler.reschedule()
-        }
-    }
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { settings.setThemeMode(mode) }

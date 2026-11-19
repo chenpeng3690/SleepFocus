@@ -4,8 +4,31 @@
 
     <!-- 底部导航 -->
     <string name="nav_home">主页</string>
+    <string name="nav_plans">计划</string>
     <string name="nav_stats">统计</string>
     <string name="nav_settings">设置</string>
+
+    <!-- 睡眠计划 -->
+    <string name="plans_title">睡眠计划</string>
+    <string name="plans_empty_title">还没有计划</string>
+    <string name="plans_empty_desc">新建一个计划，到点自动冻结所选应用</string>
+    <string name="plans_add">新建计划</string>
+    <string name="plans_card_desc">每天 · 冻结 %1$d 个应用</string>
+    <string name="plans_no_apps">未选择应用，到点不会冻结</string>
+    <string name="plans_edit_title">编辑计划</string>
+    <string name="plans_section_time">时间</string>
+    <string name="plans_start_time">开始时间</string>
+    <string name="plans_end_time">解冻时间</string>
+    <string name="plans_cross_day">次日解冻（跨天）</string>
+    <string name="plans_enabled">启用计划</string>
+    <string name="plans_time_tip">每天在开始时间冻结所选应用，到解冻时间自动恢复；与其他计划时间重叠时，后开始的计划会接管</string>
+    <string name="plans_section_apps">冻结应用</string>
+    <string name="plans_selected_apps">已选应用</string>
+    <string name="plans_selected_count">已选 %1$d 个应用</string>
+    <string name="plans_select_apps">选择</string>
+    <string name="plans_delete">删除计划</string>
+    <string name="plans_delete_title">删除这个计划？</string>
+    <string name="plans_delete_message">删除后将不再按此时间冻结应用，已选应用配置也会一并移除。</string>
 
     <!-- 主页 -->
     <string name="home_title">专注</string>
@@ -94,16 +117,11 @@
     <string name="settings_fgs_permission">前台服务</string>
     <string name="settings_alarm_permission">精确闹钟</string>
     <string name="settings_exact_alarm_granted">已授权</string>
-    <string name="settings_exact_alarm_denied">未授权（定时睡眠将降级为不精确）</string>
+    <string name="settings_exact_alarm_denied">未授权（计划闹钟将降级为不精确）</string>
     <string name="settings_focus_section">专注</string>
     <string name="settings_default_duration">默认倒计时时长</string>
     <string name="settings_count_stopped">提前停止计入累计专注时间</string>
     <string name="settings_count_stopped_desc">关闭后，中断的专注记录不计入累计时长（完成次数始终只统计已完成的专注记录）</string>
-    <string name="settings_schedule_section">定时睡眠</string>
-    <string name="settings_schedule_enabled">启用定时睡眠</string>
-    <string name="settings_schedule_start">开始时间</string>
-    <string name="settings_schedule_end">解冻时间</string>
-    <string name="settings_schedule_tip">到点自动冻结已选应用，到解冻时间自动恢复</string>
     <string name="settings_interrupt_section">中断专注</string>
     <string name="settings_interrupt_desc">控制专注进行中能否在主页提前停止并解冻应用</string>
     <string name="settings_interrupt_allow">允许</string>
@@ -127,7 +145,7 @@
     <string name="settings_clear_stats_confirm">将删除全部已完成与已中断的专注记录，正在进行的专注会保留。日志不受影响。确定继续吗？</string>
     <string name="settings_cleared">统计数据已清空</string>
     <string name="settings_grant">去授权</string>
-    <string name="schedule_fail_title">定时睡眠启动失败</string>
+    <string name="schedule_fail_title">计划启动失败</string>
     <string name="schedule_fail_text">无法启动前台服务，请检查通知权限与「精确闹钟」权限后重试。</string>
 
     <!-- 日志 -->

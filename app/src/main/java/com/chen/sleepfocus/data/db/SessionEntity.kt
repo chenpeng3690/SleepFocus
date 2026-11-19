@@ -37,7 +37,10 @@ data class SessionEntity(
     val status: String = Constants.STATUS_RUNNING,
 
     /** 本次被冻结的包名列表 */
-    val frozenPackages: List<String> = emptyList()
+    val frozenPackages: List<String> = emptyList(),
+
+    /** 由哪条睡眠计划触发；手动开始的专注为 null。用于计划重叠时判断能否被后来者接管 */
+    val sourcePlanId: Long? = null
 ) {
     val isRunning: Boolean get() = status == Constants.STATUS_RUNNING
 }
