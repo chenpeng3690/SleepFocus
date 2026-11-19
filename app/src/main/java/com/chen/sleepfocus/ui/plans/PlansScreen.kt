@@ -3,6 +3,8 @@ package com.chen.sleepfocus.ui.plans
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -157,11 +160,12 @@ private fun PlanCard(
                     )
                 }
                 Spacer(Modifier.height(6.dp))
+                val days = daySummary(plan.activeDays)
                 Text(
                     text = if (plan.packages.isEmpty()) {
-                        stringResource(R.string.plans_no_apps)
+                        stringResource(R.string.plans_card_desc_empty, days)
                     } else {
-                        stringResource(R.string.plans_card_desc, plan.packages.size)
+                        stringResource(R.string.plans_card_desc, days, plan.packages.size)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (plan.packages.isEmpty()) {
@@ -182,15 +186,17 @@ private fun PlanCard(
 private enum class TimeField { START, END }
 
 /**
- * 计划编辑页：修改开始 / 解冻时间、启停计划与选择要冻结的应用。
+ * 计划编辑页：修改开始 / 解冻时间与重复星期、启停计划、选择要冻结的应用。
  * 所有改动即时写入并重排闹钟，因此没有额外的「保存」按钮。
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PlanEditScreen(
     plan: SleepPlan,
     onStartTimeChanged: (Int) -> Unit,
     onEndTimeChanged: (Int) -> Unit,
     onEnabledChanged: (Boolean) -> Unit,
+    onDayToggled: (Int) -> Unit,
     onManageApps: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
@@ -243,7 +249,34 @@ fun PlanEditScreen(
                         )
                     }
                 )
-                Spacer(Modifier.height(6.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    text = stringResource(R.string.plans_repeat),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.height(10.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    DAY_ORDER.forEach { day ->
+                        FilterChip(
+                            selected = day in plan.activeDays,
+                            onClick = { onDayToggled(day) },
+                            label = { Text(stringResource(dayLabelRes(day))) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                if (plan.activeDays.size <= 1) {
+                    Text(
+                        text = stringResource(R.string.plans_days_required),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(6.dp))
+                }
                 Text(
                     text = stringResource(R.string.plans_time_tip),
                     style = MaterialTheme.typography.labelMedium,
@@ -314,6 +347,36 @@ fun PlanEditScreen(
                 onDelete()
             }
         )
+    }
+}
+
+/** 周一 … 周日，与 java.time.DayOfWeek.value 对齐 */
+private val DAY_ORDER = listOf(1, 2, 3, 4, 5, 6, 7)
+
+private fun dayLabelRes(day: Int): Int = when (day) {
+    1 -> R.string.plans_day_mon
+    2 -> R.string.plans_day_tue
+    3 -> R.string.plans_day_wed
+    4 -> R.string.plans_day_thu
+    5 -> R.string.plans_day_fri
+    6 -> R.string.plans_day_sat
+    else -> R.string.plans_day_sun
+}
+
+@Composable
+private fun daySummary(days: Set<Int>): String {
+    val active = if (days.isEmpty()) SleepPlan.ALL_DAYS else days
+    return when (active) {
+        SleepPlan.ALL_DAYS -> stringResource(R.string.plans_days_everyday)
+        SleepPlan.WORKDAYS -> stringResource(R.string.plans_days_workdays)
+        SleepPlan.WEEKEND -> stringResource(R.string.plans_days_weekend)
+        else -> {
+            val labels = ArrayList<String>(active.size)
+            for (day in DAY_ORDER) {
+                if (day in active) labels.add(stringResource(dayLabelRes(day)))
+            }
+            labels.joinToString("、")
+        }
     }
 }
 

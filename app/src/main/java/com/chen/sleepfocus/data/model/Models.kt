@@ -95,16 +95,24 @@ data class MonthFocus(
 )
 
 /**
- * 一条睡眠计划：每天 [startMinuteOfDay] 冻结 [packages]，到 [endMinuteOfDay] 自动解冻。
- * 两个字段都是当天 0 点起的分钟数；当 end <= start 时视为跨天（例如 23:00 -> 07:00）。
+ * 一条睡眠计划：在选中的星期（[daysOfWeek]）按 [startMinuteOfDay] 冻结 [packages]，
+ * 到 [endMinuteOfDay] 自动解冻。时间字段都是当天 0 点起的分钟数；
+ * 当 end <= start 时视为跨天（例如 23:00 -> 07:00）。
+ *
+ * [daysOfWeek] 使用 java.time.DayOfWeek.value：1 = 周一 … 7 = 周日。
  */
 data class SleepPlan(
     val id: Long = 0L,
     val enabled: Boolean = true,
     val startMinuteOfDay: Int = 23 * 60,
     val endMinuteOfDay: Int = 7 * 60,
-    val packages: Set<String> = emptySet()
+    val packages: Set<String> = emptySet(),
+    val daysOfWeek: Set<Int> = ALL_DAYS
 ) {
+    /** 实际生效的星期；空集合按每天处理，兼容异常数据 */
+    val activeDays: Set<Int>
+        get() = if (daysOfWeek.isEmpty()) ALL_DAYS else daysOfWeek
+
     /** 是否跨天（结束时间不晚于开始时间） */
     val isCrossDay: Boolean
         get() = endMinuteOfDay <= startMinuteOfDay
@@ -130,10 +138,21 @@ data class SleepPlan(
         var windowStart = dayStart + startMinuteOfDay * 60_000L
         if (timeMillis < windowStart) windowStart -= DAY_MILLIS
         val windowEnd = windowStart + durationMillis
-        return if (timeMillis < windowEnd) windowEnd else null
+        if (timeMillis >= windowEnd) return null
+
+        // 窗口必须从选中的星期开始（例如只在周一开启的 23:00 -> 07:00，
+        // 周二凌晨仍属于周一开启的窗口，而周一凌晨则不属于）
+        val windowStartDay = Instant.ofEpochMilli(windowStart).atZone(zone)
+            .toLocalDate().dayOfWeek.value
+        return if (windowStartDay in activeDays) windowEnd else null
     }
 
-    private companion object {
-        const val DAY_MILLIS = 24L * 60 * 60 * 1000
+    companion object {
+        /** 周一 … 周日（与 java.time.DayOfWeek.value 一致） */
+        val ALL_DAYS: Set<Int> = setOf(1, 2, 3, 4, 5, 6, 7)
+        val WORKDAYS: Set<Int> = setOf(1, 2, 3, 4, 5)
+        val WEEKEND: Set<Int> = setOf(6, 7)
+
+        private const val DAY_MILLIS = 24L * 60 * 60 * 1000
     }
 }

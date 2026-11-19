@@ -78,13 +78,26 @@ class AlarmScheduler(
     }
 
     private fun schedulePlan(plan: SleepPlan) {
+        val zone = ZoneId.systemDefault()
+        val now = LocalDateTime.now(zone)
+        val nowMillis = System.currentTimeMillis()
+        val nextStart = nextStartMillis(plan, now, zone)
+        val lastStart = previousStartMillis(plan, now, zone)
+        val durationMillis = plan.durationMinutes * 60_000L
+
+        // 当前仍在上一轮开启的窗口内时，解冻时间对应这一轮；否则对应下一轮开启
+        val stopAtMillis = if (lastStart != null && nowMillis < lastStart + durationMillis) {
+            lastStart + durationMillis
+        } else {
+            nextStart + durationMillis
+        }
+
         scheduleAt(
             action = Constants.ACTION_SCHEDULE_START,
             requestCode = planStartCode(plan.id),
-            triggerAtMillis = nextTriggerMillis(plan.startMinuteOfDay),
+            triggerAtMillis = nextStart,
             planId = plan.id
         )
-        val stopAtMillis = nextTriggerMillis(plan.endMinuteOfDay)
         scheduleAt(
             action = Constants.ACTION_SCHEDULE_STOP,
             requestCode = planStopCode(plan.id),
@@ -166,12 +179,32 @@ class AlarmScheduler(
     private fun planPreWakeCode(planId: Long): Int =
         Constants.REQUEST_CODE_PLAN_PRE_WAKE_BASE + planId.toInt()
 
-    /** 当天 [minuteOfDay] 的下一次触发时间；已过则顺延到明天 */
-    private fun nextTriggerMillis(minuteOfDay: Int): Long {
-        val zone = ZoneId.systemDefault()
-        val now = LocalDateTime.now(zone)
-        var target = now.toLocalDate().atStartOfDay().plusMinutes(minuteOfDay.toLong())
-        if (!target.isAfter(now)) target = target.plusDays(1)
-        return target.atZone(zone).toInstant().toEpochMilli()
+    /** 下一次落在选中星期的开始时刻 */
+    private fun nextStartMillis(plan: SleepPlan, now: LocalDateTime, zone: ZoneId): Long {
+        var date = now.toLocalDate()
+        repeat(8) {
+            val candidate = date.atStartOfDay().plusMinutes(plan.startMinuteOfDay.toLong())
+            if (date.dayOfWeek.value in plan.activeDays && candidate.isAfter(now)) {
+                return candidate.atZone(zone).toInstant().toEpochMilli()
+            }
+            date = date.plusDays(1)
+        }
+        // activeDays 非空时 8 天内一定能命中，这里只是兜底
+        return now.toLocalDate().plusDays(7).atStartOfDay()
+            .plusMinutes(plan.startMinuteOfDay.toLong())
+            .atZone(zone).toInstant().toEpochMilli()
+    }
+
+    /** 最近一次已发生的开始时刻（用于判断当前处于哪一轮窗口） */
+    private fun previousStartMillis(plan: SleepPlan, now: LocalDateTime, zone: ZoneId): Long? {
+        var date = now.toLocalDate()
+        repeat(8) {
+            val candidate = date.atStartOfDay().plusMinutes(plan.startMinuteOfDay.toLong())
+            if (date.dayOfWeek.value in plan.activeDays && !candidate.isAfter(now)) {
+                return candidate.atZone(zone).toInstant().toEpochMilli()
+            }
+            date = date.minusDays(1)
+        }
+        return null
     }
 }

@@ -495,6 +495,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         updatePlan(planId, reschedule = true) { it.copy(endMinuteOfDay = minuteOfDay) }
     }
 
+    /** 切换计划在星期几开启（1 = 周一 … 7 = 周日），至少保留一天 */
+    fun togglePlanDay(planId: Long, day: Int) {
+        updatePlan(planId, reschedule = true) { plan ->
+            val current = plan.activeDays
+            val updated = if (day in current) {
+                if (current.size <= 1) current else current - day
+            } else {
+                current + day
+            }
+            plan.copy(daysOfWeek = updated)
+        }
+    }
+
     fun deletePlan(planId: Long) {
         val updated = plans.value.filterNot { it.id == planId }
         plans.value = updated

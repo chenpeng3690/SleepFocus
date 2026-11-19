@@ -222,6 +222,7 @@ fun AppNavHost(
                         onStartTimeChanged = { viewModel.setPlanStart(planId, it) },
                         onEndTimeChanged = { viewModel.setPlanEnd(planId, it) },
                         onEnabledChanged = { viewModel.setPlanEnabled(planId, it) },
+                        onDayToggled = { viewModel.togglePlanDay(planId, it) },
                         onManageApps = { navController.navigate(Routes.planApps(planId)) },
                         // 删除后 plan 变为 null，由上方的空状态分支统一退回列表
                         onDelete = { viewModel.deletePlan(planId) },

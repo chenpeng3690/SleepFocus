@@ -199,6 +199,7 @@ class SettingsStore(private val context: Context) {
                         put("enabled", plan.enabled)
                         put("start", plan.startMinuteOfDay)
                         put("end", plan.endMinuteOfDay)
+                        put("days", JSONArray(plan.activeDays.sorted()))
                         put("packages", JSONArray(plan.packages.toList()))
                     }
                 )
@@ -218,12 +219,23 @@ class SettingsStore(private val context: Context) {
                             packageArray.optString(i).takeIf { it.isNotEmpty() }
                         }
                         .toSet()
+                    // 旧数据没有 days 字段，缺省为每天
+                    val daysArray = obj.optJSONArray("days")
+                    val days = if (daysArray == null) {
+                        SleepPlan.ALL_DAYS
+                    } else {
+                        (0 until daysArray.length())
+                            .mapNotNull { i -> daysArray.optInt(i, 0).takeIf { it in 1..7 } }
+                            .toSet()
+                            .ifEmpty { SleepPlan.ALL_DAYS }
+                    }
                     SleepPlan(
                         id = obj.optLong("id", 0L),
                         enabled = obj.optBoolean("enabled", true),
                         startMinuteOfDay = obj.optInt("start", 23 * 60).coerceIn(0, 24 * 60 - 1),
                         endMinuteOfDay = obj.optInt("end", 7 * 60).coerceIn(0, 24 * 60 - 1),
-                        packages = packages
+                        packages = packages,
+                        daysOfWeek = days
                     )
                 }
             }.getOrDefault(emptyList())
