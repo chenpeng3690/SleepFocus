@@ -91,6 +91,11 @@ fun AppSelectScreen(
         }
     }
 
+    // 已选应用置顶，未选应用保持原有字母顺序排在后面；排序稳定，组内顺序不变
+    val orderedApps = remember(visibleApps, selectedPackages) {
+        visibleApps.sortedByDescending { it.packageName in selectedPackages }
+    }
+
     Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopBar(
@@ -150,7 +155,7 @@ fun AppSelectScreen(
 
                     else -> {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(items = visibleApps, key = { it.packageName }) { app ->
+                            items(items = orderedApps, key = { it.packageName }) { app ->
                                 AppRow(
                                     app = app,
                                     selected = app.packageName in selectedPackages,
